@@ -1,4 +1,4 @@
-name: CI Build & Jenkins Trigger
+name: CI Build & Jenkins Trigger (Windows)
 
 on:
   push:
@@ -7,99 +7,29 @@ on:
 
 jobs:
   build-test:
-    runs-on: self-hosted  # ✅ ubuntu-latest → self-hosted 로 변경
+    runs-on: self-hosted   # Windows runner
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Grant execute permission for Gradlew
-        run: chmod +x ./backend/gradlew
-
-      - name: Build & Test
+      - name: Build & Test (Gradle + Docker)
+        shell: cmd
         run: |
           cd backend
-          ./gradlew clean build test
-          docker build -t ${{ secrets.DOCKER_REPO }}:${{ github.sha }} .
-          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-          docker push ${{ secrets.DOCKER_REPO }}:${{ github.sha }}
+          call gradlew.bat clean build test
+          docker build -t %DOCKER_REPO%:%GITHUB_SHA% .
+          echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
+          docker push %DOCKER_REPO%:%GITHUB_SHA%
         env:
+          DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
           SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
 
       - name: Trigger Jenkins Stage Deployment
         if: success()
+        shell: cmd
         run: |
-          curl -u "jenkins_user:${{ secrets.JENKINS_API_TOKEN }}" \
-            -X POST "http://localhost:8080/job/stage-deploy/buildWithParameters" \
+          curl -u "jenkins_user:${{ secrets.JENKINS_API_TOKEN }}" ^
+            -X POST "http://localhost:8080/job/stage-deploy/buildWithParameters" ^
             --data "IMAGE_TAG=${{ github.sha }}&BRANCH=${{ github.ref_name }}"
-
-# name: CI Build & Jenkins Trigger
-
-# on:
-#   push:
-#     branches: [ main, develop ]
-#   pull_request:
-
-# jobs:
-#   build-test:
-#     runs-on: self-hosted   # ← Windows runner에서 실행됨
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v4
-
-#       - name: Grant execute permission for Gradlew (Windows는 불필요)
-#         run: |
-#           echo "Skip chmod on Windows"
-
-#       - name: Build & Test
-#         shell: pwsh   # PowerShell로 명시
-#         run: |
-#           cd backend
-#           ./gradlew.bat clean build test
-#           docker build -t ${{ secrets.DOCKER_REPO }}:${{ github.sha }} .
-#           echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-#           docker push ${{ secrets.DOCKER_REPO }}:${{ github.sha }}
-#         env:
-#           SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
-
-#       - name: Trigger Jenkins Stage Deployment
-#         if: success()
-#         shell: pwsh
-#         run: |
-#           curl -u "jenkins_user:${{ secrets.JENKINS_API_TOKEN }}" `
-#             -X POST "http://localhost:8080/job/stage-deploy/buildWithParameters" `
-#             --data "IMAGE_TAG=${{ github.sha }}&BRANCH=${{ github.ref_name }}"
-
-
-# name: CI Build & Jenkins Trigger
-
-# on:
-#   push:
-#     branches: [ main, develop ]
-#   pull_request:
-
-# jobs:
-#   build-test:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v4
-
-#       - name: Grant execute permission for Gradlew
-#         run: chmod +x ./backend/gradlew
-
-#       - name: Build & Test
-#         run: |
-#           cd backend
-#           ./gradlew clean build test
-#           docker build -t ${{ secrets.DOCKER_REPO }}:${{ github.sha }} .
-#           echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-#           docker push ${{ secrets.DOCKER_REPO }}:${{ github.sha }}
-#         env:
-#           SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
-
-#       - name: Trigger Jenkins Stage Deployment
-#         if: success()
-#         run: |
-#           curl -u "jenkins_user:${{ secrets.JENKINS_API_TOKEN }}" \
-#             -X POST "http://localhost:8080/job/stage-deploy/buildWithParameters" \
-#             --data "IMAGE_TAG=${{ github.sha }}&BRANCH=${{ github.ref_name }}"
