@@ -30,6 +30,6 @@ jobs:
         if: success()
         shell: cmd
         run: |
-          curl -u "jenkins_user:${{ secrets.JENKINS_API_TOKEN }}" ^
+          curl -u "viroovr:${{ secrets.JENKINS_API_TOKEN }}" ^
             -X POST "http://localhost:8080/job/stage-deploy/buildWithParameters" ^
             --data "IMAGE_TAG=${{ github.sha }}&BRANCH=${{ github.ref_name }}"
