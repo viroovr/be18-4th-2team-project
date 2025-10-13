@@ -12,6 +12,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Grant execute permission for Gradlew
+        run: chmod +x ./backend/gradlew
+
       - name: Build & Test
         run: |
           ./backend/gradlew clean build test
