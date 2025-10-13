@@ -45,9 +45,7 @@ public class ValidationResultServiceImpl implements ValidationResultService {
     private final CalculateQueryRepository calculateQueryRepository;
     private final ResumeRepository resumeRepository;
     private final ValidationIssueRepository validationIssueRepository;
-
-    @PersistenceContext
-    private EntityManager em;
+    private final EntityManager em;
 
     private static final ObjectMapper OM = new ObjectMapper();
 
