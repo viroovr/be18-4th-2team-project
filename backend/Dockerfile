@@ -13,7 +13,7 @@ RUN ./gradlew clean build -x test
 # ===============================
 # Stage 2: Run
 # ===============================
-FROM eclipse-temurin:21-jdk:slim
+FROM openjdk:21-jdk-slim
 WORKDIR /app
 
 # Build 단계에서 생성된 Jar 파일 복사
